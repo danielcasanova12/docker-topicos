@@ -1,0 +1,9 @@
+/* src/index.css */
+/* Se não precisar de nada extra, deixe em branco ou com alguma customização mínima */
+
+/* Exemplo: força corpo com altura mínima de 100vh e fonte padrão */
+body {
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #f8f9fa; /* cinza bem claro, que combina com Bootstrap */
+}

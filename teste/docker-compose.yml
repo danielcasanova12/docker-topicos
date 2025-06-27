@@ -1,0 +1,28 @@
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orchard_api
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: "mongodb://mongo:27017/orchard_db"
+      PORT: 4000
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mongo
+    # volumes:
+    #   - .:/usr/src/app
+
+volumes:
+  mongo_data:

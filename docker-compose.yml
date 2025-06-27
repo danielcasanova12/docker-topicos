@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  orchard_api:
+    build:
+      context: ./teste
+      dockerfile: Dockerfile
+    container_name: orchard_api
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: "mongodb://mongo:27017/orchard_db"
+      PORT: 4000
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mongo
+
+  api1:
+    build:
+      context: ./advanced-topics
+      dockerfile: Dockerfile
+    container_name: api1-app
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on:
+      - mongo
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      - orchard_api
+
+volumes:
+  mongo_data:
