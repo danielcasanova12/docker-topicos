@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'frontend'
+        CONTAINER_NAME = 'frontend'
+        REPO_URL = 'https://seu-repositorio.git'
+        EMAIL_RECIPIENT = 'voce@example.com'
+    }
+
+    triggers {
+        cron('H 3 * * *')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: REPO_URL, branch: 'main'
+            }
+        }
+        stage('Build image') {
+            steps {
+                dir('frontend') {
+                    sh """
+                    docker rm -f ${CONTAINER_NAME} || true
+                    docker rmi ${IMAGE_NAME} || true
+                    docker build -t ${IMAGE_NAME} .
+                    """
+                }
+            }
+        }
+        stage('Run container') {
+            steps {
+                sh "docker run -d --name ${CONTAINER_NAME} -p 3000:3000 ${IMAGE_NAME}"
+            }
+        }
+    }
+
+    post {
+        success {
+            mail to: EMAIL_RECIPIENT,
+                 subject: "Job ${env.JOB_NAME} executado com sucesso",
+                 body: 'O pipeline concluiu todas as etapas com sucesso.'
+        }
+        failure {
+            mail to: EMAIL_RECIPIENT,
+                 subject: "Job ${env.JOB_NAME} falhou",
+                 body: 'Houve falha na execução do pipeline.'
+        }
+    }
+}
