@@ -96,12 +96,7 @@ export default function Reports() {
   }, [navigate]);
 
   const handleChange = (e) => {
-    let value = e.target.value;
-    if (e.target.name === "orchardId") {
-      const parsed = parseInt(value, 10);
-      value = Number.isNaN(parsed) ? value : parsed;
-    }
-    setForm({ ...form, [e.target.name]: value });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
