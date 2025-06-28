@@ -6,7 +6,7 @@ module.exports = gql`
   # ----- TYPE DEFINITIONS -----
   type Harvest {
     id: ID!
-    orchardId: ID!
+    orchardId: Int!
     date: Date!
     quantityKg: Float!
     notes: String
@@ -16,7 +16,7 @@ module.exports = gql`
 
   type Productivity {
     id: ID!
-    orchardId: ID!
+    orchardId: Int!
     date: Date!
     KgPerTree: Float!
     totalTrees: Int!
@@ -26,7 +26,7 @@ module.exports = gql`
 
   type SensorData {
     id: ID!
-    orchardId: ID!
+    orchardId: Int!
     timestamp: Date!
     temperature: Float
     humidity: Float
@@ -37,7 +37,7 @@ module.exports = gql`
 
   type Report {
     id: ID!
-    orchardId: ID!
+    orchardId: Int!
     generatedAt: Date!
     content: String!
     createdAt: Date
@@ -46,21 +46,21 @@ module.exports = gql`
 
   # ----- INPUT TYPES (para mutações) -----
   input HarvestInput {
-    orchardId: ID!
+    orchardId: Int!
     date: Date!
     quantityKg: Float!
     notes: String
   }
 
   input ProductivityInput {
-    orchardId: ID!
+    orchardId: Int!
     date: Date!
     KgPerTree: Float!
     totalTrees: Int!
   }
 
   input SensorDataInput {
-    orchardId: ID!
+    orchardId: Int!
     timestamp: Date
     temperature: Float
     humidity: Float
@@ -68,7 +68,7 @@ module.exports = gql`
   }
 
   input ReportInput {
-    orchardId: ID!
+    orchardId: Int!
     generatedAt: Date
     content: String!
   }
