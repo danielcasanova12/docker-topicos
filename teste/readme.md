@@ -93,7 +93,7 @@ graphql
 Copiar código
 mutation {
   createHarvest(input: {
-    orchardId: "ID_DO_POMAR",
+    orchardId: 1,
     date: "2025-06-05T00:00:00.000Z",
     quantityKg: 1200.5,
     notes: "Colheita inicial"
@@ -233,7 +233,7 @@ Copiar código
 curl --request POST \
   --header 'Content-Type: application/json' \
   --url http://localhost:4000/graphql \
-  --data '{"query":"mutation { createHarvest(input: { orchardId: \"ID_DO_POMAR\", date: \"2025-06-05T00:00:00.000Z\", quantityKg: 1200.5, notes: \"Colheita via curl\" }) { id orchardId date quantityKg notes } }"}'
+  --data '{"query":"mutation { createHarvest(input: { orchardId: 1, date: \"2025-06-05T00:00:00.000Z\", quantityKg: 1200.5, notes: \"Colheita via curl\" }) { id orchardId date quantityKg notes } }"}'
 Demais operações
 createProductivity
 
