@@ -3,6 +3,7 @@ const Harvest = require('../models/Harvest');
 const Productivity = require('../models/Productivity');
 const SensorData = require('../models/SensorData');
 const Report = require('../models/Report');
+const rabbitmq = require('../rabbitmq');
 
 const dateScalar = new GraphQLScalarType({
   name: 'Date',
@@ -53,6 +54,8 @@ module.exports = {
   });
 
   const savedHarvest = await harvest.save();
+
+  rabbitmq.publish({ type: 'harvest.created', payload: savedHarvest });
 
   // --- salvar produtividade automaticamente ---
   // const orchard = await Orchard.findById(input.orchardId);
@@ -146,7 +149,9 @@ module.exports = {
         generatedAt: input.generatedAt || Date.now(),
         content: input.content,
       });
-      return await rpt.save();
+      const saved = await rpt.save();
+      rabbitmq.publish({ type: 'report.created', payload: saved });
+      return saved;
     },
     updateReport: async (_parent, { id, input }) =>
       await Report.findByIdAndUpdate(
