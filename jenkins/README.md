@@ -10,6 +10,7 @@ Os jobs executam as seguintes etapas:
 2. Removem eventuais containers e imagens existentes da aplicação;
 3. Fazem o `build` da imagem descrita no `Dockerfile`;
 4. Criam um novo container com a imagem gerada;
+
 5. Inicializam o container.
 
 Cada pipeline possui ainda um gatilho diário (cron) e envia e-mails de sucesso
