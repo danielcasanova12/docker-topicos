@@ -14,7 +14,8 @@ Os jobs executam as seguintes etapas:
 
 Cada pipeline possui ainda um gatilho diário (cron) e envia e-mails de sucesso
 ou falha ao final da execução. Para que o envio funcione, configure no Jenkins
-um servidor SMTP válido e altere a variável `EMAIL_RECIPIENT` em cada script.
+um servidor SMTP válido, instale o plugin **Email Extension** e altere a
+variável `EMAIL_RECIPIENT` em cada script.
 
 ## Arquivos
 
@@ -22,4 +23,6 @@ um servidor SMTP válido e altere a variável `EMAIL_RECIPIENT` em cada script.
 - `Jenkinsfile-orchard_api` – pipeline da API localizada em `teste/`;
 - `Jenkinsfile-api1` – pipeline do serviço em `advanced-topics/`.
 
-Adapte as URLs de repositório e demais parâmetros de acordo com o ambiente.
+Todos os projetos ficam neste mesmo repositório Git; cada pipeline entra no
+diretório correspondente com o passo `dir()` antes do `docker build`. Adapte as
+URLs de repositório e demais parâmetros de acordo com o ambiente.
