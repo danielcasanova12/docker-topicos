@@ -4,8 +4,8 @@ pipeline {
     environment {
         IMAGE_NAME = 'api1-app'
         CONTAINER_NAME = 'api1-app'
-        REPO_URL = 'https://seu-repositorio.git'
-        EMAIL_RECIPIENT = 'voce@example.com'
+        REPO_URL = 'https://github.com/danielcasanova12/docker-topicos.git'
+        EMAIL_RECIPIENT = 'snaxofc10@gmail.com'
     }
 
     triggers {
