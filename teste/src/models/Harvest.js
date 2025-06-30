@@ -1,7 +1,7 @@
 const { Schema, model } = require('mongoose');
 
 const harvestSchema = new Schema({
-  orchardId: { type: Schema.Types.ObjectId, required: true },
+  orchardId: { type: String, required: true },
   date: { type: Date, required: true },
   quantityKg: { type: Number, required: true },
   notes: { type: String },
