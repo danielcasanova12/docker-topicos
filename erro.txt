@@ -1,44 +1,20 @@
- Tarefa sobre Integração Contínua
+Como configurar no Jenkins
+Crie um Pipeline Job para cada serviço.
 
-Tendo como base o assunto desenvolvido nos demais trabalhos (APIs, Front, Docker), agora você criará pipelines para disponibilizar os serviços em containers Docker de forma automatizada com a ferramenta Jenkins.
+Em Pipeline → Definition, escolha Pipeline script from SCM, selecione Git e informe a URL do repositório.
 
- 
+Em Script Path, aponte para o Jenkinsfile daquele serviço (por exemplo advanced-topics/Jenkinsfile).
 
-Criar um ambiente CI/CD para fazer a integração e entrega contínua dos serviços (publicação).
+Configure globalmente o E-mail Notification (Manage Jenkins → Configure System → E-mail Notification) com seu servidor SMTP (Gmail, Outlook etc.) e suas credenciais.
 
-Exemplo de arquitetura de tecnologias envolvidas no Jenkins:
+Salve. A cada dia, às 2h, o Jenkins vai:
 
+baixar o código,
 
+remover contêiner/imagem antigos,
 
+construir a nova imagem,
 
+iniciar o container atualizado,
 
-
-Crie um Job para cada projeto que automatize o processo de implantação das aplicações contidas nos repositórios Git.
-
- 
-
-O que o Job deverá fazer:
-
-Baixar o conteúdo do repositório Git;
-
-Fazer o build da imagem descrita no arquivo Dockerfile;
-
-Criar um container com a imagem gerada;
-
-Inicialize o container do Docker.
-
- 
-
-Observação: o job deve remover o container e a imagem existente da aplicação web antes de fazer o build da nova imagem e a criação do novo container da aplicação web.
-
- 
-
-Configure um gatilho para executar este processo todos os dias em um horário estabelecido.
-
- 
-
-Configure o envio de e-mail: ao final da execução de cada job, enviar um e-mail para você avisando sobre o sucesso ou falha na execução do job. Configure um servidor SMTP ou IMAP para enviar os e-mails (do gmail, outlook, hotmail, etc).
-
-
-
-meu email é snaxofc10@gmail.com
+e enviar um e-mail de sucesso ou de falha.
