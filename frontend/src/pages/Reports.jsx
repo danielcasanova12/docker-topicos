@@ -18,14 +18,18 @@ export default function Reports() {
 
   const [form, setForm] = useState({
     orchardId: "",
-    content: "",
+    date: "",
+    quantityKg: 0,
+    notes: "",
   });
+
+  const [filterOrchardId, setFilterOrchardId] = useState(""); // Novo estado para o filtro
 
   const API2_GQL = "http://localhost:4000/graphql";
   const API1_REST = "http://localhost:8080/api/orchards";
 
   // traz os reports GraphQL
-  const fetchReports = async () => {
+  const fetchReports = async (filterId = null) => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -33,8 +37,8 @@ export default function Reports() {
     setFetchError("");
 
     const query = gql`
-      {
-        reports {
+      query GetReports($orchardId: Int) {
+        reports(orchardId: $orchardId) {
           id
           generatedAt
           content
@@ -47,7 +51,7 @@ export default function Reports() {
       const data = await request(
         API2_GQL,
         query,
-        undefined,
+        { orchardId: filterId ? parseInt(filterId) : null }, // Passa o filtro como variável
         { Authorization: `Bearer ${token}` }
       );
       setReports(data.reports);
@@ -90,18 +94,22 @@ export default function Reports() {
   };
 
   useEffect(() => {
-    fetchReports();
+    fetchReports(filterOrchardId); // Chama com o filtro inicial
     fetchOrchards();
      
-  }, [navigate]);
+  }, [navigate, filterOrchardId]); // Adiciona filterOrchardId como dependência
 
   const handleChange = (e) => {
     let value = e.target.value;
-    if (e.target.name === "orchardId") {
+    if (e.target.name === "quantityKg") {
       const parsed = parseInt(value, 10);
       value = Number.isNaN(parsed) ? value : parsed;
     }
     setForm({ ...form, [e.target.name]: value });
+  };
+
+  const handleFilterChange = (e) => {
+    setFilterOrchardId(e.target.value); // Atualiza o estado do filtro
   };
 
   const handleSubmit = async (e) => {
@@ -110,8 +118,8 @@ export default function Reports() {
     setFetchError("");
 
     const mutation = gql`
-      mutation CreateReport($input: ReportInput!) {
-        createReport(input: $input) {
+      mutation CreateHarvest($input: HarvestInput!) {
+        createHarvest(input: $input) {
           id
         }
       }
@@ -122,12 +130,12 @@ export default function Reports() {
       await request(
         API2_GQL,
         mutation,
-        { input: { ...form } },
+        { input: { ...form, date: new Date(form.date) } }, // Converte a data para objeto Date
         { Authorization: `Bearer ${token}` }
       );
 
-      await fetchReports();
-      setForm({ orchardId: "", content: "" });
+      await fetchReports(filterOrchardId); // Re-fetch com o filtro atual
+      setForm({ orchardId: "", date: "", quantityKg: 0, notes: "" });
     } catch (err) {
       console.error("Erro ao criar report:", err);
       setFetchError("Erro ao criar report. Verifique os dados e tente novamente.");
@@ -148,49 +156,57 @@ export default function Reports() {
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label className="form-label">Orchard</label>
-                {loadingOrchards ? (
-                  <div className="spinner-border spinner-border-sm" role="status" />
-                ) : errorOrchards ? (
-                  <div className="text-danger">{errorOrchards}</div>
-                ) : (
-                <select
-                  name="orchardId"
-                  className="form-select"
-                  value={form.orchardId}
+                <label className="form-label">Data do Report</label>
+                <input
+                  type="date"
+                  name="date"
+                  className="form-control"
+                  value={form.date}
                   onChange={handleChange}
                   required
-                >
-                  <option value="" disabled>
-                    Selecione um Pomar…
-                  </option>
-                  {orchards.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.property?.name || `Pomar #${o.id}`}
-                    </option>
-                  ))}
-                </select>
-
-                )}
+                />
               </div>
 
               <div className="mb-3">
                 <label className="form-label">Conteúdo</label>
                 <textarea
-                  name="content"
+                  name="notes"
                   className="form-control"
                   rows="3"
-                  value={form.content}
+                  value={form.notes}
                   onChange={handleChange}
                   required
                 />
               </div>
 
               <button className="btn btn-primary" type="submit" disabled={creating}>
-                {creating ? "Criando..." : "Criar Report"}
+                {creating ? "Criando..." : "Gerar Report"}
               </button>
             </form>
           </div>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Filtrar por Orchard:</label>
+          {loadingOrchards ? (
+            <div className="spinner-border spinner-border-sm" role="status" />
+          ) : errorOrchards ? (
+            <div className="text-danger">{errorOrchards}</div>
+          ) : (
+            <select
+              name="filterOrchardId"
+              className="form-select"
+              value={filterOrchardId}
+              onChange={handleFilterChange}
+            >
+              <option value="">Todos os Pomares</option>
+              {orchards.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.property?.name || `Pomar #${o.id}`}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {loadingReports && (

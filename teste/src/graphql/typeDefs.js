@@ -104,5 +104,7 @@ module.exports = gql`
     createReport(input: ReportInput!): Report!
     updateReport(id: ID!, input: ReportInput!): Report!
     deleteReport(id: ID!): Boolean!
+
+    sendMessage(message: String!): String
   }
 `;

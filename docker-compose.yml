@@ -17,6 +17,11 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   orchard_api:
     build:
@@ -31,8 +36,10 @@ services:
     ports:
       - "4000:4000"
     depends_on:
-      - mongo
-      - rabbitmq
+      mongo:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
 
   api1:
     build:
@@ -45,8 +52,10 @@ services:
       - "8080:8080"
     restart: unless-stopped
     depends_on:
-      - mongo
-      - rabbitmq
+      mongo:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
 
   frontend:
     build:
