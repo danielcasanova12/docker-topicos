@@ -37,7 +37,7 @@ module.exports = gql`
 
   type Report {
     id: ID!
-    orchardId: Int!
+    orchardId: Int
     generatedAt: Date!
     content: String!
     createdAt: Date
@@ -68,7 +68,7 @@ module.exports = gql`
   }
 
   input ReportInput {
-    orchardId: Int!
+    orchardId: ID
     generatedAt: Date
     content: String!
   }

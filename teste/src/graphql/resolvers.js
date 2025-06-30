@@ -157,8 +157,12 @@ module.exports = {
 
     // Reports
     createReport: async (_parent, { input }) => {
+      const orchardId =
+        input.orchardId !== undefined && input.orchardId !== ''
+          ? parseInt(input.orchardId, 10)
+          : undefined;
       const rpt = new Report({
-        orchardId: input.orchardId,
+        orchardId,
         generatedAt: input.generatedAt || Date.now(),
         content: input.content,
       });
@@ -184,16 +188,21 @@ module.exports = {
 
       return saved;
     },
-    updateReport: async (_parent, { id, input }) =>
-      await Report.findByIdAndUpdate(
+    updateReport: async (_parent, { id, input }) => {
+      const orchardId =
+        input.orchardId !== undefined && input.orchardId !== ''
+          ? parseInt(input.orchardId, 10)
+          : undefined;
+      return await Report.findByIdAndUpdate(
         id,
         {
-          orchardId: input.orchardId,
+          orchardId,
           generatedAt: input.generatedAt || Date.now(),
           content: input.content,
         },
         { new: true }
-      ),
+      );
+    },
     deleteReport: async (_parent, { id }) => {
       await Report.findByIdAndDelete(id);
       return true;

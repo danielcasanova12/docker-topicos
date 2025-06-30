@@ -2,7 +2,8 @@ const { Schema, model } = require('mongoose');
 
 const reportSchema = new Schema(
   {
-    orchardId: { type: Number, required: true },
+    // orchardId pode ser opcional em alguns relatórios
+    orchardId: { type: Number },
     generatedAt: { type: Date, default: Date.now },
     content: { type: String, required: true },
   },
