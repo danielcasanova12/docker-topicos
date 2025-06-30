@@ -1,13 +1,38 @@
-{,…}
-operationName
-: 
-"CreateHarvest"
-query
-: 
-"\n  mutation CreateHarvest($input: HarvestInput!) {\n    createHarvest(input: $input) {\n      id\n    }\n  }\n"
-variables
-: 
-{input: {orchardId: "1", date: "2025-06-18", quantityKg: 2, notes: "2"}}
+{
+    "errors": [
+        {
+            "message": "Productivity validation failed: orchardId: Cast to ObjectId failed for value \"1\" (type string) at path \"orchardId\" because of \"BSONError\"",
+            "locations": [
+                {
+                    "line": 3,
+                    "column": 5
+                }
+            ],
+            "path": [
+                "createHarvest"
+            ],
+            "extensions": {
+                "code": "INTERNAL_SERVER_ERROR",
+                "exception": {
+                    "errors": {
+                        "orchardId": {
+                            "stringValue": "\"1\"",
+                            "valueType": "string",
+                            "kind": "ObjectId",
+                            "value": "1",
+                            "path": "orchardId",
+                            "reason": {},
+                            "name": "CastError",
+                            "message": "Cast to ObjectId failed for value \"1\" (type string) at path \"orchardId\" because of \"BSONError\""
+                        }
+                    },
+                    "_message": "Productivity validation failed"
+                }
+            }
+        }
+    ],
+    "data": null
+}
 
 {errors: [{,…}], data: null}
 data
@@ -21,22 +46,34 @@ errors
 {,…}
 extensions
 : 
-{code: "INTERNAL_SERVER_ERROR", exception: {errors: {,…}, _message: "Harvest validation failed"}}
+{code: "INTERNAL_SERVER_ERROR", exception: {errors: {,…}, _message: "Productivity validation failed"}}
 code
 : 
 "INTERNAL_SERVER_ERROR"
 exception
 : 
-{errors: {,…}, _message: "Harvest validation failed"}
+{errors: {,…}, _message: "Productivity validation failed"}
+errors
+: 
+{,…}
+_message
+: 
+"Productivity validation failed"
 locations
 : 
 [{line: 3, column: 5}]
 0
 : 
 {line: 3, column: 5}
+column
+: 
+5
+line
+: 
+3
 message
 : 
-"Harvest validation failed: orchardId: Cast to ObjectId failed for value \"1\" (type string) at path \"orchardId\" because of \"BSONError\""
+"Productivity validation failed: orchardId: Cast to ObjectId failed for value \"1\" (type string) at path \"orchardId\" because of \"BSONError\""
 path
 : 
 ["createHarvest"]
@@ -44,4 +81,3 @@ path
 : 
 "createHarvest"
 
-ao tentar criar uma colheita esta dando este erro

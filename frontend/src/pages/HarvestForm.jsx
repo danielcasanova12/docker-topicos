@@ -150,11 +150,12 @@ export default function HarvestForm() {
                 <option value="">Selecione um pomar...</option>
                 {orchards.map((o) => (
                   <option key={o.id} value={o.id}>
-                    {o.name}
+                    {o.property.name}
                   </option>
                 ))}
               </select>
             </div>
+
 
             <div className="mb-3">
               <label className="form-label">Data</label>
