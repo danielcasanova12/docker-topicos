@@ -162,7 +162,27 @@ module.exports = {
         generatedAt: input.generatedAt || Date.now(),
         content: input.content,
       });
-      return await rpt.save();
+      const saved = await rpt.save();
+
+      const channel = getChannel();
+      if (channel) {
+        channel.sendToQueue(
+          'report_queue',
+          Buffer.from(
+            JSON.stringify({
+              orchardId: saved.orchardId,
+              generatedAt: saved.generatedAt,
+              content: saved.content,
+            })
+          ),
+          { persistent: true }
+        );
+        console.log('Relatório enviado para a fila.');
+      } else {
+        console.error('Canal RabbitMQ não disponível para enviar relatório.');
+      }
+
+      return saved;
     },
     updateReport: async (_parent, { id, input }) =>
       await Report.findByIdAndUpdate(

@@ -27,7 +27,12 @@ function sendToQueue(queueName, message) {
   }
 }
 
+function getChannel() {
+  return channel;
+}
+
 module.exports = {
   connectRabbitMQ,
   sendToQueue,
+  getChannel,
 };
