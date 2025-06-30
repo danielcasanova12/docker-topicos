@@ -1,0 +1,13 @@
+git
+workflow-aggregator
+docker-workflow
+pipeline-stage-view
+email-ext
+build-timeout
+timestamper
+ws-cleanup
+docker-commons
+github
+github-branch-source
+configuration-as-code
+blueocean

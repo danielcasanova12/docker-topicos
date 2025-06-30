@@ -1,6 +1,7 @@
 version: "3.8"
 
 services:
+  # Seus serviços existentes
   mongo:
     image: mongo:6.0
     container_name: mongo
@@ -9,6 +10,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - app-network
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -19,6 +22,23 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: api1db
+      POSTGRES_USER: api1user
+      POSTGRES_PASSWORD: api1password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   orchard_api:
     build:
@@ -35,6 +55,8 @@ services:
     depends_on:
       - mongo
       - rabbitmq
+    networks:
+      - app-network
 
   api1:
     build:
@@ -47,23 +69,15 @@ services:
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/api1db
+      SPRING_DATASOURCE_USERNAME: api1user
+      SPRING_DATASOURCE_PASSWORD: api1password
     depends_on:
       - mongo
       - rabbitmq
-      - postgres # Adicionado dependência do PostgreSQL
-
-  postgres:
-    image: postgres:13 # Usando uma imagem PostgreSQL estável
-    container_name: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: api1db # Nome do banco de dados
-      POSTGRES_USER: api1user # Usuário do banco de dados
-      POSTGRES_PASSWORD: api1password # Senha do banco de dados
-    ports:
-      - "5432:5432" # Porta padrão do PostgreSQL
-    volumes:
-      - postgres_data:/var/lib/postgresql/data # Volume para persistir os dados
+      - postgres
+    networks:
+      - app-network
 
   frontend:
     build:
@@ -75,8 +89,42 @@ services:
     restart: unless-stopped
     depends_on:
       - orchard_api
+    networks:
+      - app-network
+
+  # Jenkins com Docker integrado
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
+    container_name: jenkins-ci
+    restart: unless-stopped
+    ports:
+      - "8090:8080"  # Mudei para 8090 para não conflitar com api1
+      - "50001:50000"  # Mudei para 50001 para evitar conflito
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/workspace  # Monta o código fonte
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - JENKINS_OPTS=--httpPort=8080
+    user: root  # Necessário para acessar docker.sock
+    networks:
+      - app-network
+    depends_on:
+      - mongo
+      - rabbitmq
+      - postgres
 
 volumes:
   mongo_data:
   rabbitmq_data:
-  postgres_data: # Adicionado volume para o PostgreSQL
+  postgres_data:
+  jenkins_home:
+
+networks:
+  app-network:
+    driver: bridge
+
+    
