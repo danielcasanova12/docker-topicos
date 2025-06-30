@@ -1,20 +1,21 @@
-Como configurar no Jenkins
-Crie um Pipeline Job para cada serviço.
+Criei um Jenkinsfile que roda todo o pipeline dentro de um container Docker (imagem oficial do Docker CLI), montando o socket do host para poder executar comandos docker sem precisar instalar nada no Jenkins host.
 
-Em Pipeline → Definition, escolha Pipeline script from SCM, selecione Git e informe a URL do repositório.
+Ele faz:
 
-Em Script Path, aponte para o Jenkinsfile daquele serviço (por exemplo advanced-topics/Jenkinsfile).
+Checkout do seu repositório
 
-Configure globalmente o E-mail Notification (Manage Jenkins → Configure System → E-mail Notification) com seu servidor SMTP (Gmail, Outlook etc.) e suas credenciais.
+Build & Run de cada serviço (api1, orchard_api e frontend) em containers Docker novos
 
-Salve. A cada dia, às 2h, o Jenkins vai:
+Gatilho diário às 2 h da manhã
 
-baixar o código,
+Envio de e-mail ao final, tanto no sucesso quanto na falha
 
-remover contêiner/imagem antigos,
+Você só precisa ajustar:
 
-construir a nova imagem,
+Seus paths de diretório (se differirem)
 
-iniciar o container atualizado,
+O e-mail em post { mail to: 'seu@e-mail.com', … }
 
-e enviar um e-mail de sucesso ou de falha.
+Se usar registry, configurar REGISTRY e prefixar imagens
+
+Esse Jenkinsfile dispensa a instalação de Docker na VM do Jenkins. Basta que o agente consiga puxar a imagem docker:24.0.2 e acesse /var/run/docker.sock.
