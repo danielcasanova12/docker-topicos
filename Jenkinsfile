@@ -28,14 +28,14 @@ pipeline {
                 script {
                     echo 'Building and deploying api1...'
                     // Parar e remover o container existente do serviço 'api1'
-                    sh 'docker-compose stop api1 || true'
-                    sh 'docker-compose rm -f api1 || true'
+                    sh 'docker compose stop api1 || true'
+                    sh 'docker compose rm -f api1 || true'
                     // Remover a imagem Docker do serviço 'api1'
                     sh 'docker rmi api1 || true'
                     // Fazer o build da nova imagem para o serviço 'api1'
-                    sh 'docker-compose build api1'
+                    sh 'docker compose build api1'
                     // Subir o novo container do serviço 'api1' em modo detached
-                    sh 'docker-compose up -d api1'
+                    sh 'docker compose up -d api1'
                 }
             }
         }
@@ -45,14 +45,14 @@ pipeline {
                 script {
                     echo 'Building and deploying orchard_api...'
                     // Parar e remover o container existente do serviço 'orchard_api'
-                    sh 'docker-compose stop orchard_api || true'
-                    sh 'docker-compose rm -f orchard_api || true'
+                    sh 'docker compose stop orchard_api || true'
+                    sh 'docker compose rm -f orchard_api || true'
                     // Remover a imagem Docker do serviço 'orchard_api'
                     sh 'docker rmi orchard_api || true'
                     // Fazer o build da nova imagem para o serviço 'orchard_api'
-                    sh 'docker-compose build orchard_api'
+                    sh 'docker compose build orchard_api'
                     // Subir o novo container do serviço 'orchard_api' em modo detached
-                    sh 'docker-compose up -d orchard_api'
+                    sh 'docker compose up -d orchard_api'
                 }
             }
         }
@@ -62,14 +62,14 @@ pipeline {
                 script {
                     echo 'Building and deploying frontend...'
                     // Parar e remover o container existente do serviço 'frontend'
-                    sh 'docker-compose stop frontend || true'
-                    sh 'docker-compose rm -f frontend || true'
+                    sh 'docker compose stop frontend || true'
+                    sh 'docker compose rm -f frontend || true'
                     // Remover a imagem Docker do serviço 'frontend'
                     sh 'docker rmi frontend || true'
                     // Fazer o build da nova imagem para o serviço 'frontend'
-                    sh 'docker-compose build frontend'
+                    sh 'docker compose build frontend'
                     // Subir o novo container do serviço 'frontend' em modo detached
-                    sh 'docker-compose up -d frontend'
+                    sh 'docker compose up -d frontend'
                 }
             }
         }
