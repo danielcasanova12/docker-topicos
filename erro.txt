@@ -1,21 +1,8 @@
-Criei um Jenkinsfile que roda todo o pipeline dentro de um container Docker (imagem oficial do Docker CLI), montando o socket do host para poder executar comandos docker sem precisar instalar nada no Jenkins host.
+Resumindo
+Instale o CLI no próprio container Jenkins (opção 1) ou use agent docker { image 'docker:xx' args '-v /var/run/docker.sock:/var/run/docker.sock' } (opção 2).
 
-Ele faz:
+Monte o socket Docker (-v /var/run/docker.sock:/var/run/docker.sock) no docker run do Jenkins ou no seu nó de build.
 
-Checkout do seu repositório
+Corrija o mail no post do seu pipeline, declarando to: 'seu@email'.
 
-Build & Run de cada serviço (api1, orchard_api e frontend) em containers Docker novos
-
-Gatilho diário às 2 h da manhã
-
-Envio de e-mail ao final, tanto no sucesso quanto na falha
-
-Você só precisa ajustar:
-
-Seus paths de diretório (se differirem)
-
-O e-mail em post { mail to: 'seu@e-mail.com', … }
-
-Se usar registry, configurar REGISTRY e prefixar imagens
-
-Esse Jenkinsfile dispensa a instalação de Docker na VM do Jenkins. Basta que o agente consiga puxar a imagem docker:24.0.2 e acesse /var/run/docker.sock.
+Com isso o docker ... deixará de “não ser encontrado” e os seus jobs poderão buildar, destruir e iniciar containers normalmente.
