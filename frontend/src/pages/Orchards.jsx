@@ -87,12 +87,9 @@ export default function Orchards() {
               <div key={o.id} className="col-md-4 mb-4">
                 <div className="card h-100 shadow-sm">
                   <div className="card-body">
-                    <h5 className="card-title">{o.name}</h5>
+                    <h5 className="card-title">{o.property.name}</h5>
                     <p className="card-text mb-1">
-                      <strong>Location:</strong> {o.location || "—"}
-                    </p>
-                    <p className="card-text mb-3">
-                      <strong>Área (ha):</strong> {o.totalAreaHa}
+                      <strong>Location:</strong> {o.latitude}, {o.longitude}
                     </p>
                     <p className="text-muted text-truncate mb-0">
                       <small>ID: {o.id}</small>
