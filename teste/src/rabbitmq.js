@@ -4,35 +4,29 @@ let channel;
 
 async function connectRabbitMQ() {
   try {
-    const connection = await amqp.connect(process.env.RABBITMQ_URI || 'amqp://localhost');
-    channel = await connection.createChannel();
-    await channel.assertQueue('report_queue', { durable: true });
-    console.log('Conectado ao RabbitMQ e fila report_queue assertada.');
+    const conn = await amqp.connect(process.env.RABBITMQ_URL || 'amqp://localhost');
+    channel = await conn.createChannel();
+    await channel.assertQueue('reports_queue', { durable: true });
+    console.log(`Conectado ao RabbitMQ e fila 'reports_queue' assertada.`);
   } catch (error) {
     console.error('Erro ao conectar ao RabbitMQ:', error);
-    setTimeout(connectRabbitMQ, 5000); // Tenta reconectar após 5 segundos
+    // Tentar reconectar após um tempo
+    setTimeout(connectRabbitMQ, 5000);
   }
 }
 
-function sendToQueue(queueName, message) {
+function publishToQueue(queueName, data) {
   if (!channel) {
-    console.error('Canal RabbitMQ não está disponível. Mensagem não enviada:', message);
+    console.error('Canal RabbitMQ não disponível. Tentando reconectar...');
+    connectRabbitMQ(); // Tenta reconectar se o canal não estiver disponível
     return;
   }
   try {
-    channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)), { persistent: true });
-    console.log(`Mensagem enviada para ${queueName}:`, message);
+    channel.sendToQueue(queueName, Buffer.from(JSON.stringify(data)), { persistent: true });
+    console.log(`Mensagem enviada para a fila ${queueName}:`, data);
   } catch (error) {
-    console.error('Erro ao enviar mensagem para a fila:', error);
+    console.error(`Erro ao publicar mensagem na fila ${queueName}:`, error);
   }
 }
 
-function getChannel() {
-  return channel;
-}
-
-module.exports = {
-  connectRabbitMQ,
-  sendToQueue,
-  getChannel,
-};
+module.exports = { connectRabbitMQ, publishToQueue };

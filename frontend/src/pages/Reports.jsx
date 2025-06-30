@@ -12,24 +12,14 @@ export default function Reports() {
   const [creating, setCreating] = useState(false);
 
   // estado novo: orchards
-  const [orchards, setOrchards] = useState([]);
-  const [loadingOrchards, setLoadingOrchards] = useState(true);
-  const [errorOrchards, setErrorOrchards] = useState("");
-
   const [form, setForm] = useState({
-    orchardId: "",
-    date: "",
-    quantityKg: 0,
-    notes: "",
+    content: "",
   });
 
-  const [filterOrchardId, setFilterOrchardId] = useState(""); // Novo estado para o filtro
-
   const API2_GQL = "http://localhost:4000/graphql";
-  const API1_REST = "http://localhost:8080/api/orchards";
 
   // traz os reports GraphQL
-  const fetchReports = async (filterId = null) => {
+  const fetchReports = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -37,12 +27,11 @@ export default function Reports() {
     setFetchError("");
 
     const query = gql`
-      query GetReports($orchardId: Int) {
-        reports(orchardId: $orchardId) {
+      {
+        reports {
           id
           generatedAt
           content
-          orchardId
         }
       }
     `;
@@ -51,7 +40,7 @@ export default function Reports() {
       const data = await request(
         API2_GQL,
         query,
-        { orchardId: filterId ? parseInt(filterId) : null }, // Passa o filtro como variável
+        undefined,
         { Authorization: `Bearer ${token}` }
       );
       setReports(data.reports);
@@ -67,49 +56,12 @@ export default function Reports() {
     }
   };
 
-  // traz a lista de orchards REST
-  const fetchOrchards = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    setLoadingOrchards(true);
-    setErrorOrchards("");
-
-    try {
-      const res = await fetch(API1_REST, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      if (!res.ok) throw new Error(`Status ${res.status}`);
-      const data = await res.json();
-      setOrchards(data);
-    } catch (err) {
-      console.error("Erro ao buscar orchards:", err);
-      setErrorOrchards("Não foi possível carregar os Orchards.");
-    } finally {
-      setLoadingOrchards(false);
-    }
-  };
-
   useEffect(() => {
-    fetchReports(filterOrchardId); // Chama com o filtro inicial
-    fetchOrchards();
-     
-  }, [navigate, filterOrchardId]); // Adiciona filterOrchardId como dependência
+    fetchReports();
+  }, [navigate]);
 
   const handleChange = (e) => {
-    let value = e.target.value;
-    if (e.target.name === "quantityKg") {
-      const parsed = parseInt(value, 10);
-      value = Number.isNaN(parsed) ? value : parsed;
-    }
-    setForm({ ...form, [e.target.name]: value });
-  };
-
-  const handleFilterChange = (e) => {
-    setFilterOrchardId(e.target.value); // Atualiza o estado do filtro
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -118,8 +70,8 @@ export default function Reports() {
     setFetchError("");
 
     const mutation = gql`
-      mutation CreateHarvest($input: HarvestInput!) {
-        createHarvest(input: $input) {
+      mutation CreateReport($input: ReportInput!) {
+        createReport(input: $input) {
           id
         }
       }
@@ -130,12 +82,12 @@ export default function Reports() {
       await request(
         API2_GQL,
         mutation,
-        { input: { ...form, date: new Date(form.date) } }, // Converte a data para objeto Date
+        { input: { ...form, generatedAt: new Date().toISOString() } },
         { Authorization: `Bearer ${token}` }
       );
 
-      await fetchReports(filterOrchardId); // Re-fetch com o filtro atual
-      setForm({ orchardId: "", date: "", quantityKg: 0, notes: "" });
+      await fetchReports();
+      setForm({ content: "" });
     } catch (err) {
       console.error("Erro ao criar report:", err);
       setFetchError("Erro ao criar report. Verifique os dados e tente novamente.");
@@ -156,57 +108,22 @@ export default function Reports() {
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label className="form-label">Data do Report</label>
-                <input
-                  type="date"
-                  name="date"
-                  className="form-control"
-                  value={form.date}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="mb-3">
                 <label className="form-label">Conteúdo</label>
                 <textarea
-                  name="notes"
+                  name="content"
                   className="form-control"
                   rows="3"
-                  value={form.notes}
+                  value={form.content}
                   onChange={handleChange}
                   required
                 />
               </div>
 
               <button className="btn btn-primary" type="submit" disabled={creating}>
-                {creating ? "Criando..." : "Gerar Report"}
+                {creating ? "Criando..." : "Criar Report"}
               </button>
             </form>
           </div>
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label">Filtrar por Orchard:</label>
-          {loadingOrchards ? (
-            <div className="spinner-border spinner-border-sm" role="status" />
-          ) : errorOrchards ? (
-            <div className="text-danger">{errorOrchards}</div>
-          ) : (
-            <select
-              name="filterOrchardId"
-              className="form-select"
-              value={filterOrchardId}
-              onChange={handleFilterChange}
-            >
-              <option value="">Todos os Pomares</option>
-              {orchards.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.property?.name || `Pomar #${o.id}`}
-                </option>
-              ))}
-            </select>
-          )}
         </div>
 
         {loadingReports && (
@@ -230,7 +147,6 @@ export default function Reports() {
                 <tr>
                   <th>Data</th>
                   <th>Conteúdo</th>
-                  <th>Orchard</th>
                 </tr>
               </thead>
               <tbody>
@@ -238,7 +154,6 @@ export default function Reports() {
                   <tr key={r.id}>
                     <td>{new Date(r.generatedAt).toLocaleDateString()}</td>
                     <td>{r.content}</td>
-                    <td>{orchards.find((o) => o.id === r.orchardId)?.name || r.orchardId}</td>
                   </tr>
                 ))}
               </tbody>

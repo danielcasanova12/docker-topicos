@@ -1,0 +1,54 @@
+O erro que está derrubando o seu api1 é este:
+
+pgsql
+Copiar
+Editar
+ERROR:  relation "property" does not exist
+STATEMENT:  INSERT INTO property (id, name, created_at, updated_at) VALUES (1, 'Fazenda Boa Vista', NOW(), NOW())
+Em outras palavras, na hora de rodar o seu data.sql o banco ainda não tem a tabela property criada, então o INSERT falha e o contexto do Spring não consegue nem levantar o EntityManagerFactory.
+
+Por que isso acontece
+Ordem de inicialização do Spring Boot
+
+O Spring Boot, por padrão, executa os scripts schema.sql e depois data.sql antes do Hibernate (JPA) gerar as tabelas via ddl-auto.
+
+Se você não forneceu um schema.sql (com os CREATE TABLE …) então não existe um esquema no banco quando o data.sql roda.
+
+Hibernate DDL
+
+Mesmo que você tenha entidades JPA anotadas, por padrão o Hibernate só vai criar as tabelas depois que o Spring já tentou popular com o seu data.sql — e aí é tarde demais.
+
+Como corrigir
+Você tem basicamente duas opções:
+
+1. Deferir a execução do data.sql até depois do Hibernate criar as tabelas
+No seu application.properties ou application.yml, adicione:
+
+properties
+Copiar
+Editar
+spring.jpa.hibernate.ddl-auto=update
+spring.sql.init.mode=always
+# garante que o JPA rode o DDL antes do data.sql
+spring.jpa.defer-datasource-initialization=true
+ddl-auto=update (ou create, create-drop) faz com que o Hibernate gere as tabelas com base nas suas entidades.
+
+defer-datasource-initialization=true atrasa o data.sql até depois do Hibernate rodar o DDL.
+
+2. Separar schema e dados manualmente
+Crie um schema.sql em src/main/resources:
+
+sql
+Copiar
+Editar
+CREATE TABLE property (
+  id          BIGINT   PRIMARY KEY,
+  name        VARCHAR(255) NOT NULL,
+  created_at  TIMESTAMP   NOT NULL,
+  updated_at  TIMESTAMP   NOT NULL
+);
+-- e faça o mesmo para orchard, employee, etc.
+Mantenha o seu data.sql apenas com os INSERT. Assim o Spring executa o schema.sql primeiro e só depois o data.sql.
+
+Resumindo
+O Spring está tentando inserir dados antes das tabelas existirem. Escolha ou usar spring.jpa.defer-datasource-initialization=true + ddl-auto ou fornecer manualmente um schema.sql. Com isso o data.sql encontrará a tabela property e a aplicação conseguirá inicializar normalmente.
