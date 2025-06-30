@@ -1,0 +1,9 @@
+version: "3.8"
+
+services:
+  api1:
+    build: .
+    container_name: api1-app
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
