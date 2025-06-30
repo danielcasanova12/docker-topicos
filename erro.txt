@@ -1,54 +1,181 @@
-O erro que está derrubando o seu api1 é este:
-
-pgsql
-Copiar
-Editar
-ERROR:  relation "property" does not exist
-STATEMENT:  INSERT INTO property (id, name, created_at, updated_at) VALUES (1, 'Fazenda Boa Vista', NOW(), NOW())
-Em outras palavras, na hora de rodar o seu data.sql o banco ainda não tem a tabela property criada, então o INSERT falha e o contexto do Spring não consegue nem levantar o EntityManagerFactory.
-
-Por que isso acontece
-Ordem de inicialização do Spring Boot
-
-O Spring Boot, por padrão, executa os scripts schema.sql e depois data.sql antes do Hibernate (JPA) gerar as tabelas via ddl-auto.
-
-Se você não forneceu um schema.sql (com os CREATE TABLE …) então não existe um esquema no banco quando o data.sql roda.
-
-Hibernate DDL
-
-Mesmo que você tenha entidades JPA anotadas, por padrão o Hibernate só vai criar as tabelas depois que o Spring já tentou popular com o seu data.sql — e aí é tarde demais.
-
-Como corrigir
-Você tem basicamente duas opções:
-
-1. Deferir a execução do data.sql até depois do Hibernate criar as tabelas
-No seu application.properties ou application.yml, adicione:
-
-properties
-Copiar
-Editar
-spring.jpa.hibernate.ddl-auto=update
-spring.sql.init.mode=always
-# garante que o JPA rode o DDL antes do data.sql
-spring.jpa.defer-datasource-initialization=true
-ddl-auto=update (ou create, create-drop) faz com que o Hibernate gere as tabelas com base nas suas entidades.
-
-defer-datasource-initialization=true atrasa o data.sql até depois do Hibernate rodar o DDL.
-
-2. Separar schema e dados manualmente
-Crie um schema.sql em src/main/resources:
-
-sql
-Copiar
-Editar
-CREATE TABLE property (
-  id          BIGINT   PRIMARY KEY,
-  name        VARCHAR(255) NOT NULL,
-  created_at  TIMESTAMP   NOT NULL,
-  updated_at  TIMESTAMP   NOT NULL
-);
--- e faça o mesmo para orchard, employee, etc.
-Mantenha o seu data.sql apenas com os INSERT. Assim o Spring executa o schema.sql primeiro e só depois o data.sql.
-
-Resumindo
-O Spring está tentando inserir dados antes das tabelas existirem. Escolha ou usar spring.jpa.defer-datasource-initialization=true + ddl-auto ou fornecer manualmente um schema.sql. Com isso o data.sql encontrará a tabela property e a aplicação conseguirá inicializar normalmente.
+2025-06-30 01:04:29 
+2025-06-30 01:04:29   .   ____          _            __ _ _
+2025-06-30 01:04:29  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2025-06-30 01:04:29 ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2025-06-30 01:04:29  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2025-06-30 01:04:29   '  |____| .__|_| |_|_| |_\__, | / / / /
+2025-06-30 01:04:29  =========|_|==============|___/=/_/_/_/
+2025-06-30 01:04:29 
+2025-06-30 01:04:29  :: Spring Boot ::                (v3.4.4)
+2025-06-30 01:04:29 
+2025-06-30 01:04:29 2025-06-30T04:04:29.832Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : Starting Api1Application v0.0.1-SNAPSHOT using Java 17.0.2 with PID 1 (/app/app.jar started by root in /app)
+2025-06-30 01:04:29 2025-06-30T04:04:29.836Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : No active profile set, falling back to 1 default profile: "default"
+2025-06-30 01:04:31 2025-06-30T04:04:31.095Z  WARN 1 --- [api1] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.support.BeanDefinitionOverrideException: Invalid bean definition with name 'objectMapper' defined in br.edu.utfpr.api1.Api1Application: Cannot register bean definition [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=api1Application; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in br.edu.utfpr.api1.Api1Application] for bean 'objectMapper' since there is already [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=jacksonConfig; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class]] bound.
+2025-06-30 01:04:31 2025-06-30T04:04:31.107Z  INFO 1 --- [api1] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2025-06-30 01:04:31 
+2025-06-30 01:04:31 Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-06-30 01:04:31 2025-06-30T04:04:31.143Z ERROR 1 --- [api1] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2025-06-30 01:04:31 
+2025-06-30 01:04:31 ***************************
+2025-06-30 01:04:31 APPLICATION FAILED TO START
+2025-06-30 01:04:31 ***************************
+2025-06-30 01:04:31 
+2025-06-30 01:04:31 Description:
+2025-06-30 01:04:31 
+2025-06-30 01:04:31 The bean 'objectMapper', defined in br.edu.utfpr.api1.Api1Application, could not be registered. A bean with that name has already been defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class] and overriding is disabled.
+2025-06-30 01:04:31 
+2025-06-30 01:04:31 Action:
+2025-06-30 01:04:31 
+2025-06-30 01:04:31 Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
+2025-06-30 01:04:31 
+2025-06-30 01:04:33 
+2025-06-30 01:04:33   .   ____          _            __ _ _
+2025-06-30 01:04:33  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2025-06-30 01:04:33 ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2025-06-30 01:04:33  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2025-06-30 01:04:33   '  |____| .__|_| |_|_| |_\__, | / / / /
+2025-06-30 01:04:33  =========|_|==============|___/=/_/_/_/
+2025-06-30 01:04:33 
+2025-06-30 01:04:33  :: Spring Boot ::                (v3.4.4)
+2025-06-30 01:04:33 
+2025-06-30 01:04:33 2025-06-30T04:04:33.415Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : Starting Api1Application v0.0.1-SNAPSHOT using Java 17.0.2 with PID 1 (/app/app.jar started by root in /app)
+2025-06-30 01:04:33 2025-06-30T04:04:33.420Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : No active profile set, falling back to 1 default profile: "default"
+2025-06-30 01:04:34 2025-06-30T04:04:34.370Z  WARN 1 --- [api1] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.support.BeanDefinitionOverrideException: Invalid bean definition with name 'objectMapper' defined in br.edu.utfpr.api1.Api1Application: Cannot register bean definition [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=api1Application; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in br.edu.utfpr.api1.Api1Application] for bean 'objectMapper' since there is already [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=jacksonConfig; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class]] bound.
+2025-06-30 01:04:34 2025-06-30T04:04:34.382Z  INFO 1 --- [api1] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2025-06-30 01:04:34 
+2025-06-30 01:04:34 Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-06-30 01:04:34 2025-06-30T04:04:34.414Z ERROR 1 --- [api1] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2025-06-30 01:04:34 
+2025-06-30 01:04:34 ***************************
+2025-06-30 01:04:34 APPLICATION FAILED TO START
+2025-06-30 01:04:34 ***************************
+2025-06-30 01:04:34 
+2025-06-30 01:04:34 Description:
+2025-06-30 01:04:34 
+2025-06-30 01:04:34 The bean 'objectMapper', defined in br.edu.utfpr.api1.Api1Application, could not be registered. A bean with that name has already been defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class] and overriding is disabled.
+2025-06-30 01:04:34 
+2025-06-30 01:04:34 Action:
+2025-06-30 01:04:34 
+2025-06-30 01:04:34 Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
+2025-06-30 01:04:34 
+2025-06-30 01:04:37 
+2025-06-30 01:04:37   .   ____          _            __ _ _
+2025-06-30 01:04:37  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2025-06-30 01:04:37 ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2025-06-30 01:04:37  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2025-06-30 01:04:37   '  |____| .__|_| |_|_| |_\__, | / / / /
+2025-06-30 01:04:37  =========|_|==============|___/=/_/_/_/
+2025-06-30 01:04:37 
+2025-06-30 01:04:37  :: Spring Boot ::                (v3.4.4)
+2025-06-30 01:04:37 
+2025-06-30 01:04:37 2025-06-30T04:04:37.245Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : Starting Api1Application v0.0.1-SNAPSHOT using Java 17.0.2 with PID 1 (/app/app.jar started by root in /app)
+2025-06-30 01:04:37 2025-06-30T04:04:37.258Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : No active profile set, falling back to 1 default profile: "default"
+2025-06-30 01:04:38 2025-06-30T04:04:38.414Z  WARN 1 --- [api1] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.support.BeanDefinitionOverrideException: Invalid bean definition with name 'objectMapper' defined in br.edu.utfpr.api1.Api1Application: Cannot register bean definition [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=api1Application; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in br.edu.utfpr.api1.Api1Application] for bean 'objectMapper' since there is already [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=jacksonConfig; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class]] bound.
+2025-06-30 01:04:38 2025-06-30T04:04:38.427Z  INFO 1 --- [api1] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2025-06-30 01:04:38 
+2025-06-30 01:04:38 Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-06-30 01:04:38 2025-06-30T04:04:38.471Z ERROR 1 --- [api1] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2025-06-30 01:04:38 
+2025-06-30 01:04:38 ***************************
+2025-06-30 01:04:38 APPLICATION FAILED TO START
+2025-06-30 01:04:38 ***************************
+2025-06-30 01:04:38 
+2025-06-30 01:04:38 Description:
+2025-06-30 01:04:38 
+2025-06-30 01:04:38 The bean 'objectMapper', defined in br.edu.utfpr.api1.Api1Application, could not be registered. A bean with that name has already been defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class] and overriding is disabled.
+2025-06-30 01:04:38 
+2025-06-30 01:04:38 Action:
+2025-06-30 01:04:38 
+2025-06-30 01:04:38 Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
+2025-06-30 01:04:38 
+2025-06-30 01:04:40 
+2025-06-30 01:04:40   .   ____          _            __ _ _
+2025-06-30 01:04:40  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2025-06-30 01:04:40 ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2025-06-30 01:04:40  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2025-06-30 01:04:40   '  |____| .__|_| |_|_| |_\__, | / / / /
+2025-06-30 01:04:40  =========|_|==============|___/=/_/_/_/
+2025-06-30 01:04:40 
+2025-06-30 01:04:40  :: Spring Boot ::                (v3.4.4)
+2025-06-30 01:04:40 
+2025-06-30 01:04:40 2025-06-30T04:04:40.982Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : Starting Api1Application v0.0.1-SNAPSHOT using Java 17.0.2 with PID 1 (/app/app.jar started by root in /app)
+2025-06-30 01:04:40 2025-06-30T04:04:40.987Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : No active profile set, falling back to 1 default profile: "default"
+2025-06-30 01:04:42 2025-06-30T04:04:42.291Z  WARN 1 --- [api1] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.support.BeanDefinitionOverrideException: Invalid bean definition with name 'objectMapper' defined in br.edu.utfpr.api1.Api1Application: Cannot register bean definition [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=api1Application; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in br.edu.utfpr.api1.Api1Application] for bean 'objectMapper' since there is already [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=jacksonConfig; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class]] bound.
+2025-06-30 01:04:42 2025-06-30T04:04:42.303Z  INFO 1 --- [api1] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2025-06-30 01:04:42 
+2025-06-30 01:04:42 Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-06-30 01:04:42 2025-06-30T04:04:42.362Z ERROR 1 --- [api1] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2025-06-30 01:04:42 
+2025-06-30 01:04:42 ***************************
+2025-06-30 01:04:42 APPLICATION FAILED TO START
+2025-06-30 01:04:42 ***************************
+2025-06-30 01:04:42 
+2025-06-30 01:04:42 Description:
+2025-06-30 01:04:42 
+2025-06-30 01:04:42 The bean 'objectMapper', defined in br.edu.utfpr.api1.Api1Application, could not be registered. A bean with that name has already been defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class] and overriding is disabled.
+2025-06-30 01:04:42 
+2025-06-30 01:04:42 Action:
+2025-06-30 01:04:42 
+2025-06-30 01:04:42 Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
+2025-06-30 01:04:42 
+2025-06-30 01:04:44 
+2025-06-30 01:04:44   .   ____          _            __ _ _
+2025-06-30 01:04:44  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2025-06-30 01:04:44 ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2025-06-30 01:04:44  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2025-06-30 01:04:44   '  |____| .__|_| |_|_| |_\__, | / / / /
+2025-06-30 01:04:44  =========|_|==============|___/=/_/_/_/
+2025-06-30 01:04:44 
+2025-06-30 01:04:44  :: Spring Boot ::                (v3.4.4)
+2025-06-30 01:04:44 
+2025-06-30 01:04:44 2025-06-30T04:04:44.648Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : Starting Api1Application v0.0.1-SNAPSHOT using Java 17.0.2 with PID 1 (/app/app.jar started by root in /app)
+2025-06-30 01:04:44 2025-06-30T04:04:44.655Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : No active profile set, falling back to 1 default profile: "default"
+2025-06-30 01:04:45 2025-06-30T04:04:45.627Z  WARN 1 --- [api1] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.support.BeanDefinitionOverrideException: Invalid bean definition with name 'objectMapper' defined in br.edu.utfpr.api1.Api1Application: Cannot register bean definition [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=api1Application; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in br.edu.utfpr.api1.Api1Application] for bean 'objectMapper' since there is already [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=jacksonConfig; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class]] bound.
+2025-06-30 01:04:45 2025-06-30T04:04:45.652Z  INFO 1 --- [api1] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2025-06-30 01:04:45 
+2025-06-30 01:04:45 Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-06-30 01:04:45 2025-06-30T04:04:45.696Z ERROR 1 --- [api1] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2025-06-30 01:04:45 
+2025-06-30 01:04:45 ***************************
+2025-06-30 01:04:45 APPLICATION FAILED TO START
+2025-06-30 01:04:45 ***************************
+2025-06-30 01:04:45 
+2025-06-30 01:04:45 Description:
+2025-06-30 01:04:45 
+2025-06-30 01:04:45 The bean 'objectMapper', defined in br.edu.utfpr.api1.Api1Application, could not be registered. A bean with that name has already been defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class] and overriding is disabled.
+2025-06-30 01:04:45 
+2025-06-30 01:04:45 Action:
+2025-06-30 01:04:45 
+2025-06-30 01:04:45 Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
+2025-06-30 01:04:45 
+2025-06-30 01:04:48 
+2025-06-30 01:04:48   .   ____          _            __ _ _
+2025-06-30 01:04:48  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2025-06-30 01:04:48 ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2025-06-30 01:04:48  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2025-06-30 01:04:48   '  |____| .__|_| |_|_| |_\__, | / / / /
+2025-06-30 01:04:48  =========|_|==============|___/=/_/_/_/
+2025-06-30 01:04:48 
+2025-06-30 01:04:48  :: Spring Boot ::                (v3.4.4)
+2025-06-30 01:04:48 
+2025-06-30 01:04:48 2025-06-30T04:04:48.870Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : Starting Api1Application v0.0.1-SNAPSHOT using Java 17.0.2 with PID 1 (/app/app.jar started by root in /app)
+2025-06-30 01:04:48 2025-06-30T04:04:48.876Z  INFO 1 --- [api1] [           main] br.edu.utfpr.api1.Api1Application        : No active profile set, falling back to 1 default profile: "default"
+2025-06-30 01:04:49 2025-06-30T04:04:49.550Z  WARN 1 --- [api1] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.support.BeanDefinitionOverrideException: Invalid bean definition with name 'objectMapper' defined in br.edu.utfpr.api1.Api1Application: Cannot register bean definition [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=api1Application; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in br.edu.utfpr.api1.Api1Application] for bean 'objectMapper' since there is already [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=jacksonConfig; factoryMethodName=objectMapper; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class]] bound.
+2025-06-30 01:04:49 2025-06-30T04:04:49.566Z  INFO 1 --- [api1] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2025-06-30 01:04:49 
+2025-06-30 01:04:49 Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-06-30 01:04:49 2025-06-30T04:04:49.600Z ERROR 1 --- [api1] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2025-06-30 01:04:49 
+2025-06-30 01:04:49 ***************************
+2025-06-30 01:04:49 APPLICATION FAILED TO START
+2025-06-30 01:04:49 ***************************
+2025-06-30 01:04:49 
+2025-06-30 01:04:49 Description:
+2025-06-30 01:04:49 
+2025-06-30 01:04:49 The bean 'objectMapper', defined in br.edu.utfpr.api1.Api1Application, could not be registered. A bean with that name has already been defined in class path resource [br/edu/utfpr/api1/configs/JacksonConfig.class] and overriding is disabled.
+2025-06-30 01:04:49 
+2025-06-30 01:04:49 Action:
+2025-06-30 01:04:49 
+2025-06-30 01:04:49 Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
+2025-06-30 01:04:49 
+2025-06-30 01:04:54
